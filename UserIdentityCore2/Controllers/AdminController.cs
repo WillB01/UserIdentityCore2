@@ -53,5 +53,37 @@ namespace UserIdentityCore2.Controllers
             }
             return View(model);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(string id)
+        {
+            AppUser user = await _userManager.FindByIdAsync(id);
+            if(user != null)
+            {
+                IdentityResult result = await _userManager.DeleteAsync(user);
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    AddErrorsFromResult(result);
+                }
+                
+            }
+            else
+            {
+                ModelState.AddModelError("", "User Not Found");
+            }
+            return View("index", _userManager.Users);
+        }
+
+        public void AddErrorsFromResult(IdentityResult result)
+        {
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+        }
     }
 }

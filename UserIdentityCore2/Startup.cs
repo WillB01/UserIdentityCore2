@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using UserIdentityCore2.Data;
+using UserIdentityCore2.Infrastructure;
 using UserIdentityCore2.Models;
 
 namespace UserIdentityCore2
@@ -25,12 +26,22 @@ namespace UserIdentityCore2
         }
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddTransient<IPasswordValidator<AppUser>, CustomPasswordValidator>();
+
             services.AddDbContext<AppIdentityDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddIdentity<AppUser, IdentityRole>()
-                .AddEntityFrameworkStores<AppIdentityDbContext>()
-                .AddDefaultTokenProviders();
+            services.AddIdentity<AppUser, IdentityRole>(options =>
+            {
+                options.Password.RequiredLength = 6;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireDigit = false;
+
+            }).AddEntityFrameworkStores<AppIdentityDbContext>()
+              .AddDefaultTokenProviders();
+
             services.AddMvc();
         }
 
